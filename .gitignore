@@ -4,6 +4,8 @@ __pycache__/
 data/raw/
 data/processed/
 *.zip
-*.pth
-*.onnx
-*.tflite
+*.dll
+*.pyd
+*.log
+*.pt
+*.pth~
