@@ -1,48 +1,57 @@
+import os
 import torch
+import torch.nn as nn
+from torchvision import datasets, transforms
 from torch.utils.data import DataLoader
-from torch import nn, optim
+from model import RiceQualityNet
 
-from dataset import RiceDataset, get_transforms
-from model import get_model
-
+# CONFIG
 DATA_DIR = "data/processed"
-BATCH_SIZE = 8
-EPOCHS = 10
-LR = 1e-3
+BATCH_SIZE = 16
+EPOCHS = 5
+LR = 1e-4
+IMG_SIZE = 128
+DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 
-def train():
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+# TRANSFORMS
+train_tf = transforms.Compose([
+    transforms.Resize((IMG_SIZE, IMG_SIZE)),
+    transforms.RandomHorizontalFlip(),
+    transforms.ToTensor()
+])
 
-    dataset = RiceDataset(DATA_DIR, transform=get_transforms())
-    loader = DataLoader(dataset, batch_size=BATCH_SIZE, shuffle=True)
+# DATASET
+dataset = datasets.ImageFolder(DATA_DIR, transform=train_tf)
+loader = DataLoader(dataset, batch_size=BATCH_SIZE, shuffle=True)
 
-    model = get_model().to(device)
+# MODEL
+model = RiceQualityNet(num_classes=2).to(DEVICE)
+criterion = nn.CrossEntropyLoss()
+optimizer = torch.optim.Adam(model.parameters(), lr=LR)
 
-    # Handle imbalance
-    weights = torch.tensor([198/27, 1.0]).to(device)
-    criterion = nn.CrossEntropyLoss(weight=weights)
+# TRAIN LOOP
+for epoch in range(EPOCHS):
+    model.train()
+    correct, total, loss_sum = 0, 0, 0
 
-    optimizer = optim.Adam(model.parameters(), lr=LR)
+    for imgs, labels in loader:
+        imgs, labels = imgs.to(DEVICE), labels.to(DEVICE)
 
-    for epoch in range(EPOCHS):
-        model.train()
-        total_loss = 0
+        optimizer.zero_grad()
+        outputs = model(imgs)
+        loss = criterion(outputs, labels)
+        loss.backward()
+        optimizer.step()
 
-        for imgs, labels in loader:
-            imgs, labels = imgs.to(device), labels.to(device)
+        loss_sum += loss.item()
+        preds = outputs.argmax(dim=1)
+        correct += (preds == labels).sum().item()
+        total += labels.size(0)
 
-            optimizer.zero_grad()
-            outputs = model(imgs)
-            loss = criterion(outputs, labels)
-            loss.backward()
-            optimizer.step()
+    acc = 100 * correct / total
+    print(f"Epoch {epoch+1}/{EPOCHS} | Loss: {loss_sum:.3f} | Acc: {acc:.2f}%")
 
-            total_loss += loss.item()
-
-        print(f"Epoch {epoch+1}/{EPOCHS} | Loss: {total_loss:.4f}")
-
-    torch.save(model.state_dict(), "models/baseline_model.pth")
-    print("Baseline model saved.")
-
-if __name__ == "__main__":
-    train()
+# SAVE MODEL
+os.makedirs("models", exist_ok=True)
+torch.save(model.state_dict(), "models/baseline_model.pth")
+print("Baseline model saved to models/baseline_model.pth")

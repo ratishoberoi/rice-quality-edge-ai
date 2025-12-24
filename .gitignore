@@ -4,8 +4,4 @@ __pycache__/
 data/raw/
 data/processed/
 *.zip
-*.dll
-*.pyd
-*.log
-*.pt
-*.pth~
+.DS_Store
