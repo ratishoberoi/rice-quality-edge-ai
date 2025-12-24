@@ -1,7 +1,18 @@
+# Virtual environment
 venv/
+env/
+
+# Python cache
 __pycache__/
 *.pyc
+
+# Dataset (raw & processed images)
 data/raw/
 data/processed/
+
+# Large files
 *.zip
+
+# OS files
 .DS_Store
+Thumbs.db
