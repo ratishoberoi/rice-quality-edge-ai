@@ -22,3 +22,17 @@ models/      - saved baseline and edge models
 
 ## Status
 Phase 0 completed - project structure and environment ready.
+ 
+## Dataset Interpretation & Labeling Strategy
+
+The selected Kaggle dataset contains real-world rice samples with varying levels of impurities
+(stones, insects, broken particles).
+
+Since **almost all samples contain some level of impurity**, the dataset was reframed into a
+binary quality classification problem:
+
+- **Good**: Rice samples with minimal impurities, acceptable for consumption.
+- **Bad**: Rice samples with heavy contamination, stones, or visible insects.
+
+This reframing reflects a **practical quality inspection scenario**, where the goal is to
+decide whether a rice batch passes or fails quality checks rather than detecting a perfectly clean sample.
