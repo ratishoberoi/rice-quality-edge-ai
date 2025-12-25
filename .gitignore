@@ -12,7 +12,8 @@ data/processed/
 
 # Large files
 *.zip
-
+*.jpg
+*.png
 # OS files
 .DS_Store
 Thumbs.db
